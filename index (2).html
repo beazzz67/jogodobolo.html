@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Estequiometria do Bolo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root{
+      --rosa:#ff7aa8; --azul:#7ad3ff; --bg1:#ffe0f0; --bg2:#fff8f2; --cinza:#dddddd; --bordas:#555;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family: 'Baloo 2', cursive;
+      background: linear-gradient(180deg, var(--bg1), var(--bg2));
+      color:#333;
+      margin:0; padding:24px; text-align:center;
+    }
+    h1{
+      color:var(--rosa);
+      text-shadow: 2px 2px #fff;
+      margin:8px 0 16px;
+      font-size: 32px;
+      letter-spacing: 0.5px;
+    }
+    .sub{
+      margin:0 auto 16px;
+      max-width: 720px;
+      color:#4a4a4a;
+      font-size: 16px;
+    }
+    .painel{
+      display:flex; gap:24px; justify-content:center; flex-wrap:wrap; margin-top:16px;
+    }
+    .card{
+      background:#fff; border-radius:16px; box-shadow:0 10px 18px rgba(0,0,0,0.08);
+      padding:16px; width:clamp(280px, 44vw, 560px);
+    }
+    .inputs{
+      display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:8px;
+    }
+    .campo{display:flex; flex-direction:column; align-items:flex-start; gap:6px;}
+    label{font-weight:600; color:#555;}
+    input{
+      padding:10px 12px; border-radius:12px; border:1px solid #ccc; width:140px; font-size:16px;
+      background:#fffdfb;
+    }
+    .btn{
+      margin-top:16px; padding:12px 20px; background:var(--rosa); color:#fff; border:none;
+      border-radius:12px; cursor:pointer; font-size:18px; font-weight:700;
+      box-shadow:0 6px 12px rgba(0,0,0,0.18); transition: transform 0.15s ease;
+    }
+    .btn:hover{ transform: scale(1.05); }
+    .forno{
+      width: 420px; height: 260px; margin: 18px auto; background: var(--cinza);
+      border: 10px solid var(--bordas); border-radius: 14px; position: relative; overflow: hidden;
+    }
+    .faixa-topo{ position:absolute; top:0; left:0; right:0; height:32px; background:#cfcfcf;}
+    .knob{ width:12px; height:12px; background:#666; border-radius:50%; position:absolute; top:10px;}
+    .knob.k1{ left:14px;} .knob.k2{ left:34px;} .knob.k3{ left:54px;}
+    #bolo{
+      width:130px; position:absolute; bottom:16px; left:50%; transform: translateX(-50%);
+      transition: all 1.8s ease;
+    }
+    .molecula{
+      width:46px; height:46px; position:absolute; bottom:34px;
+      animation: reagir 2.4s ease-in forwards;
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.25));
+    }
+    @keyframes reagir{
+      0%{transform:translateY(0); opacity:1}
+      100%{transform:translateY(-90px); opacity:0}
+    }
+    .bolha{
+      width:22px; height:22px; background:var(--azul); border-radius:50%;
+      position:absolute; bottom:20px; opacity:0.95;
+      animation: subir 2.8s ease-in forwards;
+      box-shadow: inset 0 0 10px rgba(255,255,255,0.7);
+    }
+    @keyframes subir{
+      0%{ transform: translateY(0) scale(1); opacity:0.95}
+      100%{ transform: translateY(-190px) scale(0.6); opacity:0}
+    }
+    .hud{
+      display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:8px;
+    }
+    .barra{ background:#f4f4f4; border-radius:10px; padding:8px; text-align:left;}
+    .barra b{ display:block; margin-bottom:6px; color:#555;}
+    .fill{ height:10px; border-radius:8px; background: linear-gradient(90deg, var(--azul), var(--rosa)); width:0%;}
+    .mensagem{ margin-top:12px; font-size:16px; min-height:32px;}
+    .ingredientes{
+      display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-top:12px;
+    }
+    .ingredientes .ico{ width:64px; height:64px; border-radius:12px; background:#fff; box-shadow:0 6px 12px rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:center; padding:6px;}
+    .legend{ font-size:13px; color:#666; margin-top:6px;}
+    .footer-tip{ margin-top:10px; font-size:13px; color:#666;}
+    /* mobile */
+    @media (max-width:560px){ .forno{ width: 92vw; } .hud{ grid-template-columns:1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <h1>ESTEQUIOMETRIA DO BOLO 🍰</h1>
+  <p class="sub">Digite as quantidades e veja as moléculas reagindo!</p>
+
+  <div class="painel">
+    <!-- Card de entradas e ação -->
+    <div class="card">
+      <div class="inputs">
+        <div class="campo">
+          <label>Fermento (g)</label>
+          <input type="number" id="fermento" value="5" min="0" step="0.1">
+        </div>
+        <div class="campo">
+          <label>Ácido (g)</label>
+          <input type="number" id="acido" value="3" min="0" step="0.1">
+        </div>
+      </div>
+      <button class="btn" id="btnAssar">Assar 🔥</button>
+
+      <!-- Forno -->
+      <div class="forno" id="forno">
+        <div class="faixa-topo"></div>
+        <div class="knob k1"></div><div class="knob k2"></div><div class="knob k3"></div>
+        <img id="bolo" src="img/bolo-cru.png" alt="Bolo cru">
+      </div>
+
+      <!-- HUD de avaliação -->
+      <div class="hud">
+        <div class="barra">
+          <b>Crescimento</b><div class="fill" id="growFill"></div>
+        </div>
+        <div class="barra">
+          <b>Umidade</b><div class="fill" id="moistFill"></div>
+        </div>
+        <div class="barra">
+          <b>Estrutura</b><div class="fill" id="structFill"></div>
+        </div>
+        <div class="barra">
+          <b>Sabor</b><div class="fill" id="flavorFill"></div>
+        </div>
+      </div>
+      <div class="mensagem" id="mensagem"></div>
+      <p class="footer-tip">Dica: cerca de 0,05 mol de CO₂ costuma ser suficiente para um bolo pequeno crescer bem.</p>
+    </div>
+
+    <!-- Card de ingredientes (ilustrativos) -->
+    <div class="card">
+      <div class="ingredientes">
+        <div class="ico"><img src="img/farinha.png" alt="Farinha" width="52"></div>
+        <div class="ico"><img src="img/ovos.png" alt="Ovos" width="52"></div>
+        <div class="ico"><img src="img/acucar.png" alt="Açúcar" width="52"></div>
+        <div class="ico"><img src="img/leite.png" alt="Leite" width="52"></div>
+        <div class="ico"><img src="img/fermento.png" alt="Fermento" width="52"></div>
+      </div>
+      <p class="legend">Ingredientes ilustrativos — ajuste as quantidades acima e clique em Assar 🔥</p>
+    </div>
+  </div>
+
+  <!-- Sons -->
+  <audio id="somForno" src="sons/forno.mp3" preload="auto"></audio>
+  <audio id="somBolhas" src="sons/bolhas.mp3" preload="auto"></audio>
+  <audio id="somSucesso" src="sons/sucesso.mp3" preload="auto"></audio>
+  <audio id="somErro" src="sons/erro.mp3" preload="auto"></audio>
+
+  <script>
+    const MM_NaHCO3 = 84; // g/mol (aprox)
+    const MM_Hplus   = 1; // g/mol (simplificado pedagógico)
+    const alvoCO2 = 0.05; // mol de CO2 para "bolo fofo"
+
+    const forno = document.getElementById("forno");
+    const bolo = document.getElementById("bolo");
+    const msg = document.getElementById("mensagem");
+    const btn = document.getElementById("btnAssar");
+
+    const somForno = document.getElementById("somForno");
+    const somBolhas = document.getElementById("somBolhas");
+    const somSucesso = document.getElementById("somSucesso");
+    const somErro = document.getElementById("somErro");
+
+    const growFill = document.getElementById("growFill");
+    const moistFill = document.getElementById("moistFill");
+    const structFill = document.getElementById("structFill");
+    const flavorFill = document.getElementById("flavorFill");
+
+    btn.addEventListener("click", avaliarReacao);
+
+    function avaliarReacao(){
+      // ler entradas
+      const fermentoG = +document.getElementById("fermento").value || 0;
+      const acidoG = +document.getElementById("acido").value || 0;
+
+      // tocar som de forno
+      somForno.currentTime = 0; somForno.play();
+
+      // calcular mols
+      const molFermento = fermentoG / MM_NaHCO3;
+      const molAcido = acidoG / MM_Hplus;
+
+      // estequiometria 1:1 → CO2 limitado pelo menor
+      const molCO2 = Math.min(molFermento, molAcido);
+
+      // limpar elementos anteriores
+      forno.querySelectorAll(".molecula,.bolha").forEach(el=>el.remove());
+
+      // criar sprites de moléculas e bolhas proporcionais
+      const unidades = Math.max(1, Math.round(molCO2 * 10)); // escala visual
+      for(let i=0; i<unidades; i++){
+        const na = spriteMol("img/NaHCO3.png");
+        const h  = spriteMol("img/Hplus.png");
+        const x = 40 + Math.random()* (forno.clientWidth - 90);
+        na.style.left = x+"px";
+        h.style.left  = (x+30)+"px";
+        forno.appendChild(na);
+        forno.appendChild(h);
+
+        // bolha de CO2
+        const b = document.createElement("div");
+        b.className = "bolha";
+        b.style.left = (20 + Math.random()*(forno.clientWidth - 40))+"px";
+        b.style.animationDelay = (Math.random()*1.5)+"s";
+        forno.appendChild(b);
+      }
+
+      // som de bolhas
+      somBolhas.currentTime = 0; somBolhas.play();
+
+      // crescimento visual do bolo proporcional ao CO2
+      const fator = clamp(molCO2 / alvoCO2, 0, 1.4); // limita o exagero visual
+      bolo.style.width = (130 + 140 * fator) + "px";
+      bolo.src = molCO2 >= alvoCO2 ? "img/bolo-perfeito.png" : "img/bolo-solado.png";
+
+      // HUD (barras)
+      setFill(growFill, 15 + 75 * fator);
+      setFill(moistFill, 50); // simplificado
+      setFill(structFill, molCO2 >= alvoCO2 ? 68 : 40);
+      setFill(flavorFill, molCO2 >= alvoCO2 ? 72 : 58);
+
+      // mensagem
+      const texto = `
+        Fermento: ${molFermento.toFixed(2)} mol • Ácido: ${molAcido.toFixed(2)} mol<br>
+        CO₂ gerado: <b>${molCO2.toFixed(2)} mol</b>
+      `;
+      msg.innerHTML = texto;
+
+      if(molCO2 >= alvoCO2){
+        somSucesso.currentTime = 0; somSucesso.play();
+        msg.innerHTML += `<br>🎉 Proporção ideal! O bolo cresceu fofo.`;
+      } else {
+        somErro.currentTime = 0; somErro.play();
+        msg.innerHTML += `<br>😕 Pouco CO₂ — reagente limitante insuficiente. Bolo solado.`;
+      }
+    }
+
+    function spriteMol(src){
+      const d = document.createElement("div");
+      d.className = "molecula";
+      d.style.background = `url('${src}') no-repeat center/contain`;
+      return d;
+    }
+
+    function setFill(el, pct){
+      el.style.width = clamp(pct, 0, 100) + "%";
+    }
+
+    function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+  </script>
+</body>
+</html>
